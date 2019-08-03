@@ -7,7 +7,7 @@ namespace Tests
 {
     public class ProjectTests
     {
-        private TestLogger _logger = new TestLogger();
+        private readonly TestLogger _logger = new TestLogger();
 
         [Test]
         [TestCase(null)]

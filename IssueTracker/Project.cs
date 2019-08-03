@@ -35,14 +35,14 @@ namespace IssueTracker
 
         public IEnumerable<IIssue> Issues => _issues;
 
-        public void ReportBug(IBug bug, IUser reporter, DateTime dueBy, IssueStatus status = IssueStatus.Open, Severity severity = Severity.Undefined)
+        public void ReportBug(IIssueDetails details, IUser reporter, DateTime dueBy, IssueStatus status = IssueStatus.Open, Severity severity = Severity.Undefined)
         {
-            if (bug == null)
+            if (details == null)
             {
-                _logger.Warning("Bug can not be null");
+                _logger.Warning("Issue details can not be null");
                 return;
             }
-            AddIssue(new Issue(GetNextIssueId(), bug, reporter, null, dueBy, status, severity));
+            AddIssue(new Issue(GetNextIssueId(), details, reporter, null, dueBy, status, severity));
         }
 
         private uint GetNextIssueId()

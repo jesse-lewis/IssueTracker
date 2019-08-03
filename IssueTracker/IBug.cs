@@ -1,7 +1,6 @@
 ﻿namespace IssueTracker
 {
-    public interface IBug
+    public interface IBug : IIssueDetails
     {
-        string Description { get; }
     }
 }

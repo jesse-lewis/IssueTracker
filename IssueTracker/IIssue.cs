@@ -5,7 +5,7 @@ namespace IssueTracker
     public interface IIssue
     {
         uint Id { get; }
-        IBug Bug { get; }
+        IIssueDetails Details { get; }
         IUser Reporter { get; }
         IUser AssignedTo { get; set; }
         DateTime DueBy { get; }

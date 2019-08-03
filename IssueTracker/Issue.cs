@@ -5,10 +5,10 @@ namespace IssueTracker
 {
     internal class Issue : IIssue, IEquatable<Issue>
     {
-        public Issue(uint id, IBug bug, IUser reporter, IUser assignedTo, DateTime dueBy, IssueStatus status, Severity severity)
+        public Issue(uint id, IIssueDetails details, IUser reporter, IUser assignedTo, DateTime dueBy, IssueStatus status, Severity severity)
         {
             Id = id;
-            Bug = bug;
+            Details = details;
             Reporter = reporter;
             AssignedTo = assignedTo;
             DueBy = dueBy;
@@ -18,7 +18,7 @@ namespace IssueTracker
 
         public uint Id { get; }
 
-        public IBug Bug { get; }
+        public IIssueDetails Details { get; }
 
         public IUser Reporter { get; }
 
