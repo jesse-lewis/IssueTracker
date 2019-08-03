@@ -35,24 +35,24 @@ namespace IssueTracker
 
         public IEnumerable<IIssue> Issues => _issues;
 
-        public void ReportBug(IIssueDetails details, IUser reporter, DateTime dueBy, IssueStatus status = IssueStatus.Open, Severity severity = Severity.Undefined)
+        public void ReportBug(IBug details, IUser reporter, DateTime dueBy, IssueStatus status = IssueStatus.Open, Severity severity = Severity.Undefined)
         {
-            if (details == null)
+            if (string.IsNullOrWhiteSpace(details?.Description))
             {
-                _logger.Warning("Issue details can not be null");
+                _logger.Warning("Issue details missing from bug.");
                 return;
             }
             AddIssue(new Issue(GetNextIssueId(), details, reporter, null, dueBy, status, severity));
         }
 
-        private uint GetNextIssueId()
-        {
-            return _issues.LastOrDefault()?.Id ?? 1;
-        }
-
         private void AddIssue(IIssue issue)
         {
             _issues.Add(issue);
+        }
+
+        private uint GetNextIssueId()
+        {
+            return _issues.LastOrDefault()?.Id ?? 1;
         }
 
         public void AddUser(IUser user)
@@ -65,9 +65,14 @@ namespace IssueTracker
             Supervisor = supervisor ?? throw new ArgumentNullException(nameof(supervisor));
         }
 
+        public IEnumerable<IBug> FindBugs(string description = null)
+        {
+            return _issues.Select(i => i.Details).OfType<IBug>().Where(b => description == null || b.Description.Contains(description));
+        }
+
         public void RemoveUser(IUser user)
         {
-            throw new NotImplementedException();
+            _users.Remove(user);
         }
     }
 }

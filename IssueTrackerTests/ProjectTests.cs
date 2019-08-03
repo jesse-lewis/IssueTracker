@@ -1,6 +1,7 @@
 using IssueTracker;
 using NUnit.Framework;
 using System;
+using System.Collections;
 using System.Linq;
 
 namespace Tests
@@ -8,6 +9,7 @@ namespace Tests
     public class ProjectTests
     {
         private readonly TestLogger _logger = new TestLogger();
+        private static readonly object[] _failingBugs = { null, CreateFakeBug(null), CreateFakeBug(""), CreateFakeBug(" ") };
 
         [Test]
         [TestCase(null)]
@@ -19,11 +21,13 @@ namespace Tests
         }
 
         [Test]
-        public void ReportBug_IfBugIsNull_LogsIssueAndDoesNotAddIssue()
+        [TestCase(null)]
+        [TestCaseSource(nameof(_failingBugs))]
+        public void ReportBug_IfBugOrBugDescriptionIsNull_LogsIssueAndDoesNotAddIssue(IBug bug)
         {
             var project = CreateProject();
 
-            project.ReportBug(null, new FakeUser(), DateTime.Now, IssueStatus.Open, Severity.Minor);
+            project.ReportBug(bug, new FakeUser(), DateTime.Now, IssueStatus.Open, Severity.Minor);
 
             Assert.That(!string.IsNullOrWhiteSpace(_logger.LastLog));
             Assert.That(!project.Issues.Any());
@@ -49,9 +53,47 @@ namespace Tests
             Assert.That(GetLastIssue(project).Severity, Is.EqualTo(Severity.Undefined));
         }
 
+        [Test]
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        public void FindBugs_WithNoParameters_ReturnsAllBugs(int bugs)
+        {
+            var project = CreateProject();
+
+            ReportFakeBugs(project, bugs);
+
+            Assert.That(project.FindBugs().Count(), Is.EqualTo(bugs));
+        }
+
+        [Test]
+        [TestCase("description", 1)]
+        [TestCase("description", 2)]
+        public void FindBugs_WithDescriptionParameter_ReturnsAllBugsContainingPartOfTheDescription(string description, int bugs)
+        {
+            var project = CreateProject();
+
+            ReportFakeBugs(project, bugs);
+
+            Assert.That(project.FindBugs(description).Count(), Is.EqualTo(bugs));
+        }
+
+        private static void ReportFakeBugs(Project project, int number)
+        {
+            for (int i = 0; i < number; i++)
+            {
+                ReportFakeBug(project);
+            }
+        }
+
         private static void ReportFakeBug(Project project)
         {
-            project.ReportBug(new FakeBug(), new FakeUser(), DateTime.Now);
+            project.ReportBug(CreateFakeBug("description"), new FakeUser(), DateTime.Now);
+        }
+
+        private static FakeBug CreateFakeBug(string description)
+        {
+            return new FakeBug { Description = description };
         }
 
         private static IIssue GetLastIssue(Project project)
