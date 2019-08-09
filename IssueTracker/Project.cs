@@ -70,12 +70,32 @@ namespace IssueTracker
                                           Severity? severity = null,
                                           IssueStatus? issueStatus = null)
         {
-            return _issues
-                .Where(i => issueStatus == null || i.Status == issueStatus)
-                .Where(i => severity == null || i.Severity == severity)
-                .Where(i => dueBy == null || i.DueBy < dueBy)
-                .Select(i => i.Details).OfType<IBug>()
-                .Where(b => description == null || b.Description.Contains(description));
+            return FilterBugsByDescription(GetBugs(FilterIssuesOnDueBy(FilterIssuesOnSeverity(FilterIssuesOnIssueStatus(_issues, issueStatus), severity), dueBy)), description);
+        }
+
+        private static IEnumerable<IBug> FilterBugsByDescription(IEnumerable<IBug> bugs, string description)
+        {
+            return description == null ? bugs : bugs.Where(b => b.Description.Contains(description));
+        }
+
+        private static IEnumerable<IBug> GetBugs(IEnumerable<IIssue> issues)
+        {
+            return issues.Select(i => i.Details).OfType<IBug>();
+        }
+
+        private static IEnumerable<IIssue> FilterIssuesOnDueBy(IEnumerable<IIssue> issues, DateTime? dueBy)
+        {
+            return dueBy == null ? issues : issues.Where(i => i.DueBy < dueBy);
+        }
+
+        private static IEnumerable<IIssue> FilterIssuesOnSeverity(IEnumerable<IIssue> issues, Severity? severity)
+        {
+            return severity == null ? issues : issues.Where(i => i.Severity == severity);
+        }
+
+        private static IEnumerable<IIssue> FilterIssuesOnIssueStatus(IEnumerable<IIssue> issues, IssueStatus? issueStatus)
+        {
+            return issueStatus == null ? issues :  issues.Where(i => i.Status == issueStatus);
         }
 
         public void RemoveUser(IUser user)
