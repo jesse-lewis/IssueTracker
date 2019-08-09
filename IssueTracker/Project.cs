@@ -9,6 +9,7 @@ namespace IssueTracker
         private readonly List<IIssue> _issues = new List<IIssue>();
         private readonly List<IUser> _users = new List<IUser>();
         private readonly ILogger _logger;
+        private readonly IssueFilterer _issueFilterer = new IssueFilterer();
 
         public Project(uint id, string name, ISupervisor supervisor, ILogger logger, IEnumerable<IUser> users = null, IEnumerable<IIssue> issues = null)
         {
@@ -70,32 +71,7 @@ namespace IssueTracker
                                           Severity? severity = null,
                                           IssueStatus? issueStatus = null)
         {
-            return FilterBugsByDescription(GetBugs(FilterIssuesOnDueBy(FilterIssuesOnSeverity(FilterIssuesOnIssueStatus(_issues, issueStatus), severity), dueBy)), description);
-        }
-
-        private static IEnumerable<IBug> FilterBugsByDescription(IEnumerable<IBug> bugs, string description)
-        {
-            return description == null ? bugs : bugs.Where(b => b.Description.Contains(description));
-        }
-
-        private static IEnumerable<IBug> GetBugs(IEnumerable<IIssue> issues)
-        {
-            return issues.Select(i => i.Details).OfType<IBug>();
-        }
-
-        private static IEnumerable<IIssue> FilterIssuesOnDueBy(IEnumerable<IIssue> issues, DateTime? dueBy)
-        {
-            return dueBy == null ? issues : issues.Where(i => i.DueBy < dueBy);
-        }
-
-        private static IEnumerable<IIssue> FilterIssuesOnSeverity(IEnumerable<IIssue> issues, Severity? severity)
-        {
-            return severity == null ? issues : issues.Where(i => i.Severity == severity);
-        }
-
-        private static IEnumerable<IIssue> FilterIssuesOnIssueStatus(IEnumerable<IIssue> issues, IssueStatus? issueStatus)
-        {
-            return issueStatus == null ? issues :  issues.Where(i => i.Status == issueStatus);
+            return _issueFilterer.FindBugs(_issues, description, dueBy, severity, issueStatus);
         }
 
         public void RemoveUser(IUser user)
