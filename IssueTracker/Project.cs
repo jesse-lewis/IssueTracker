@@ -35,14 +35,14 @@ namespace IssueTracker
 
         public IEnumerable<IIssue> Issues => _issues;
 
-        public void ReportBug(IBug details, IUser reporter, DateTime dueBy, IssueStatus status = IssueStatus.Open, Severity severity = Severity.Undefined)
+        public void ReportBug(IBug details, IUser reporter, DateTime dueBy, IssueStatus issueStatus = IssueStatus.Open, Severity severity = Severity.Undefined)
         {
             if (string.IsNullOrWhiteSpace(details?.Description))
             {
                 _logger.Warning("Issue details missing from bug.");
                 return;
             }
-            AddIssue(new Issue(GetNextIssueId(), details, reporter, null, dueBy, status, severity));
+            AddIssue(new Issue(GetNextIssueId(), details, reporter, null, dueBy, issueStatus, severity));
         }
 
         private void AddIssue(IIssue issue)
@@ -65,9 +65,17 @@ namespace IssueTracker
             Supervisor = supervisor ?? throw new ArgumentNullException(nameof(supervisor));
         }
 
-        public IEnumerable<IBug> FindBugs(string description = null)
+        public IEnumerable<IBug> FindBugs(string description = null,
+                                          DateTime? dueBy = null,
+                                          Severity? severity = null,
+                                          IssueStatus? issueStatus = null)
         {
-            return _issues.Select(i => i.Details).OfType<IBug>().Where(b => description == null || b.Description.Contains(description));
+            return _issues
+                .Where(i => issueStatus == null || i.Status == issueStatus)
+                .Where(i => severity == null || i.Severity == severity)
+                .Where(i => dueBy == null || i.DueBy < dueBy)
+                .Select(i => i.Details).OfType<IBug>()
+                .Where(b => description == null || b.Description.Contains(description));
         }
 
         public void RemoveUser(IUser user)
